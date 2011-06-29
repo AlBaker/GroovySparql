@@ -1,5 +1,6 @@
 apply plugin:"groovy"
-apply plugin: 'eclipse'
+apply plugin:"eclipse"
+apply plugin:"maven"
 
 
 repositories {
@@ -14,4 +15,12 @@ dependencies {
 
 	testCompile group: 'junit', name: 'junit', version: '4.8.2'
 	
+}
+
+configure(install.repositories.mavenInstaller) {
+	pom.project {
+		version '0.1'
+		artifactId 'groovy-sparql'
+		groupId 'org.codehaus.groovy.sparql'
+	}
 }
