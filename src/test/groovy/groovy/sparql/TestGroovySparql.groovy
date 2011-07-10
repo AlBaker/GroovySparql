@@ -53,6 +53,13 @@ class TestGroovySparql {
 		sparql.eachRow query, { row ->
 			assertTrue(row.abstract.startsWith("Groovy"))
 		}
+		
+		sparql = new Sparql("http://dbpedia.org/sparql", [timeout:10000])
+		assertNotNull(sparql.endpoint)
+		
+		sparql.eachRow query, { row ->
+			assertTrue(row.abstract.startsWith("Groovy"))
+		}
 	}
 	
 	@Test

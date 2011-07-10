@@ -20,6 +20,8 @@ import groovy.util.logging.*
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
+import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP
+import com.hp.hpl.jena.query.ARQ;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.QuerySolutionMap
@@ -41,6 +43,8 @@ class Sparql {
 
 	String endpoint
 	Model model
+	
+	def config = [:]
 
 	public static Sparql newInstance(String url) {
 		new Sparql(endpoint:url)
@@ -53,6 +57,16 @@ class Sparql {
 	Sparql(Model model) { this.model = model }
 
 	Sparql(String endpoint) { this.endpoint = endpoint }
+	
+	Sparql(Model model, Map config) { 
+		this.model = model
+		this.config = config
+	}
+	
+	Sparql(String endpoint, Map config) {
+		this.endpoint = endpoint
+		this.config = config
+	}
 
 	
 	/**
@@ -78,7 +92,21 @@ class Sparql {
 			if (!endpoint)
 				return
 			qe = QueryExecutionFactory.sparqlService(endpoint, query)
+			if (config.timeout) {
+				((QueryEngineHTTP)qe).addParam("timeout", config.timeout as String) 
+			}
 		}
+		
+		/**
+		 * 
+		   TODO: Uncomment when https://issues.apache.org/jira/browse/JENA-56 is fixed
+		   
+		if (config.timeout) {
+			qe.setTimeout( config?.timeout?.toLong() )
+		}
+		
+		*/
+		
 		try {
 			for (ResultSet rs = qe.execSelect(); rs.hasNext() ; ) {
 				QuerySolution sol = rs.nextSolution();
@@ -157,6 +185,7 @@ class Sparql {
 				return
 			qe = QueryExecutionFactory.create(query, tmpModel, initialBindings)
 		}
+				
 		try {
 			for (ResultSet rs = qe.execSelect(); rs.hasNext() ; ) {
 				QuerySolution sol = rs.nextSolution();
