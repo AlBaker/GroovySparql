@@ -2,7 +2,9 @@ Groovy SPARQL
 --------------
 
 A simple SPARQL API for Groovy, based on "Groovy-izing" the Jena/ARQ interface,
-and exposing common operations to accept closures
+and exposing common operations to accept closures, create DSLs for RDF, and 
+much much more!
+
 
 License
 --------------
@@ -11,7 +13,8 @@ http://www.apache.org/licenses/LICENSE-2.0
 
 TODO
 --------------
- - SPARQL / RDF Builder
+ - SPARQL Builder
+ - RDF Builder (Done)
  - Closures into the Jena model iteration
  - GORM datastore / mapper
  - More updates to dev environment as STS/Gradle stabilizes
