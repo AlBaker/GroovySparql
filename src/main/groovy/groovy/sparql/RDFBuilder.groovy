@@ -140,8 +140,9 @@ class RDFBuilder extends BuilderSupport {
 			if (input.startsWith(nsk)) { 
 			
 				def newNs
-				
-				if (nsv.startsWith("urn")) {
+				if (nsv[-1] == "#" || nsv[-1] == "/" ) { 
+					newNs = nsv + (input - (nsk + ":"))
+				} else if (nsv.startsWith("urn")) {
 					newNs =  nsv + "#"+ (input - (nsk + ":"))
 				} else {
 					newNs =  nsv + "/"+ (input - (nsk + ":"))
