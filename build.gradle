@@ -24,7 +24,7 @@ dependencies {
 
 configure(install.repositories.mavenInstaller) {
 	pom.project {
-		version '0.2'
+		version '0.2.1'
 		artifactId 'groovy-sparql'
 		groupId 'org.codehaus.groovy.sparql'
 	}
