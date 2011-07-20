@@ -216,12 +216,25 @@ class Sparql {
 		Model m = null
 		QueryExecution qe = null
 		try {
-			qe = QueryExecutionFactory.create(QueryFactory.create(sparql), model);
+			
+			if (model) {
+				qe = QueryExecutionFactory.create(sparql, model);
+			} else {
+				if (!endpoint)
+					return
+				qe = QueryExecutionFactory.sparqlService(endpoint, sparql)
+				if (config.timeout) {
+					((QueryEngineHTTP)qe).addParam("timeout", config.timeout as String)
+				}
+			}
+			
 			m = qe.execConstruct();
 		} catch (Exception e) {
-			log.error "Error executing construct with ${sparql}"
+			log.error "Error executing construct with ${sparql}", e
 		} finally {
-			qe.close();
+			if (qe) { 
+				qe.close();
+			}
 		}
 		return m;
    }

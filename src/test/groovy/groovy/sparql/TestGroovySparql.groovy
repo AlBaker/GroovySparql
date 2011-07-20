@@ -114,4 +114,21 @@ class TestGroovySparql {
 		assertTrue(found)
 	}
 
+	@Test
+	public void testConstruct() {
+
+		sparql = new Sparql("http://dbpedia.org/sparql")
+
+		String dbQuery = """
+            CONSTRUCT { 
+                <http://dbpedia.org/resource/Groovy_%28programming_language%29> <http://dbpedia.org/ontology/abstract> ?b
+            } wHERE { 
+                <http://dbpedia.org/resource/Groovy_%28programming_language%29> <http://dbpedia.org/ontology/abstract> ?b
+            } 
+        """
+		def result = sparql.construct(dbQuery)
+
+		assertEquals(result.size(), 13)
+	}
+	
 }
