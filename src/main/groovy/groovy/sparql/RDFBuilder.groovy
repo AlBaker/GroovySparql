@@ -226,7 +226,7 @@ class RDFBuilder extends BuilderSupport {
 			if (object.class == String) {
 				resource.addProperty( model.createProperty(fullPredicate), object) 
 			}  else if (object.class == URI) {
-				resource.addProperty(model.createProperty(fullPredicate), model.createResource(object))
+				resource.addProperty(model.createProperty(fullPredicate), model.createResource(object.toString()))
 			} else if (object instanceof Resource) {
 				resource.addProperty(model.createProperty(fullPredicate), object)
 			} else {
