@@ -1,4 +1,4 @@
-/* Copyright (C) 2011 Al Baker
+/* Copyright (C) 2013 Al Baker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,9 @@ class Sparql {
 
 	String endpoint
 	Model model
-	
+	String user
+	String pass
+
 	def config = [:]
 
 	public static Sparql newInstance(String url) {
@@ -57,18 +59,19 @@ class Sparql {
 	Sparql(Model model) { this.model = model }
 
 	Sparql(String endpoint) { this.endpoint = endpoint }
-	
-	Sparql(Model model, Map config) { 
+
+	Sparql(Model model, Map config) {
 		this.model = model
 		this.config = config
 	}
-	
+
 	Sparql(String endpoint, Map config) {
 		this.endpoint = endpoint
 		this.config = config
 	}
 
-	
+	Sparql() { }
+
 	/**
 	 * <code>eachRow</code>
 	 * @param sparql - SPARQL query, SELECT only
@@ -76,10 +79,10 @@ class Sparql {
 	 *        map of solution variables provided to the closure
 	 */
 	void eachRow(String sparql, Closure closure) {
-		
+
 		Query query = QueryFactory.create(sparql, Syntax.syntaxARQ)
 		QueryExecution qe = null
-		
+
 		/**
 		 * Some explanation here - ARQ can provide a QE based on a pure
 		 * SPARQL service endpoint, or a Jena model, plus you can still
@@ -93,28 +96,29 @@ class Sparql {
 				return
 			qe = QueryExecutionFactory.sparqlService(endpoint, query)
 			if (config.timeout) {
-				((QueryEngineHTTP)qe).addParam("timeout", config.timeout as String) 
+				((QueryEngineHTTP)qe).addParam("timeout", config.timeout as String)
+			}
+			if (user) {
+				((QueryEngineHTTP)qe).setBasicAuthentication(user, pass?.toCharArray());
 			}
 		}
-		
+
 		/**
 		 * 
-		   TODO: Uncomment when https://issues.apache.org/jira/browse/JENA-56 is fixed
-		   
-		if (config.timeout) {
-			qe.setTimeout( config?.timeout?.toLong() )
-		}
-		
-		*/
-		
+		 TODO: Uncomment when https://issues.apache.org/jira/browse/JENA-56 is fixed
+		 if (config.timeout) {
+		 qe.setTimeout( config?.timeout?.toLong() )
+		 }
+		 */
+
 		try {
 			for (ResultSet rs = qe.execSelect(); rs.hasNext() ; ) {
 				QuerySolution sol = rs.nextSolution();
 				Map<String, Object> row = new HashMap<String, Object>();
 				for (Iterator<String> varNames = sol.varNames(); varNames.hasNext(); ) {
-						String varName = varNames.next();
-						RDFNode varNode = sol.get(varName);
-						row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()));
+					String varName = varNames.next();
+					RDFNode varNode = sol.get(varName);
+					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()));
 				}
 				closure.call(row)
 			}
@@ -123,9 +127,49 @@ class Sparql {
 		}
 	}
 
-	
-	
-	
+	void each(String sparql, Closure closure) {
+		Query query = QueryFactory.create(sparql, Syntax.syntaxARQ)
+		QueryExecution qe = null
+
+		/**
+		 * Some explanation here - ARQ can provide a QE based on a pure
+		 * SPARQL service endpoint, or a Jena model, plus you can still
+		 * do remote queries with the model using the in-SPARQL "service"
+		 * keyword.
+		 */
+		if (model) {
+			qe = QueryExecutionFactory.create(query, model);
+		} else {
+			if (!endpoint)
+				return
+			qe = QueryExecutionFactory.sparqlService(endpoint, query)
+			if (config.timeout) {
+				((QueryEngineHTTP)qe).addParam("timeout", config.timeout as String)
+			}
+			if (user) {
+				((QueryEngineHTTP)qe).setBasicAuthentication(user, pass?.toCharArray());
+			}
+		}
+
+		try {
+			for (ResultSet rs = qe.execSelect(); rs.hasNext() ; ) {
+				QuerySolution sol = rs.nextSolution();
+				
+				Map<String, Object> row = new HashMap<String, Object>();
+				for (Iterator<String> varNames = sol.varNames(); varNames.hasNext(); ) {
+					String varName = varNames.next();
+					RDFNode varNode = sol.get(varName);
+					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()));
+				}
+				closure.delegate = row
+				closure.call()
+			}
+		} finally {
+			qe.close();
+		}
+	}
+
+
 	/**
 	 * <code>eachRow</code>
 	 * @param sparql - SPARQL query, SELECT only
@@ -134,28 +178,28 @@ class Sparql {
 	 *        map of solution variables provided to the closure
 	 */
 	void eachRow(String sparql, Map args, Closure closure) {
-		
+
 		Query query = QueryFactory.create(sparql, Syntax.syntaxARQ)
 		QueryExecution qe = null
 		QuerySolutionMap initialBindings = new QuerySolutionMap();
-		
+
 		Model tmpModel
-		
+
 		if (!model) {
 			tmpModel = ModelFactory.createDefaultModel();
 		} else {
 			tmpModel = model
 		}
-		
-		def processArgs =  {  key, value ->	
+
+		def processArgs =  {  key, value ->
 			if (value.class == java.net.URI) {
-				// this apparently works for both Resoruce and Property instances, in Jena
+				// this apparently works for both Resource and Property instances, in Jena
 				// terms, however there is a difference between the object of a triple being
 				// a resource OR a literal, so Strings = Literals, URIs = Resources
 				initialBindings.add(key, tmpModel.createResource(value.toString()))
 			} else if (value.class == java.lang.String){
 				initialBindings.add(key, tmpModel.createLiteral(value.toString()))
-			} else { 
+			} else {
 				value.properties.each { propName, propValue ->
 					if (propValue.class == java.lang.String || propValue.class == java.net.URI) {
 						if (propName == "subject") {
@@ -164,14 +208,14 @@ class Sparql {
 							owner.call("${key}Predicate".toString(), propValue)
 						} else if (propName == "object") {
 							owner.call("${key}Object".toString(), propValue)
-						} 
-					} 	
+						}
+					}
 				}
 			}
 		}
-		
+
 		args.each(processArgs)
-		
+
 		/**
 		 * Some explanation here - ARQ can provide a QE based on a pure
 		 * SPARQL service endpoint, or a Jena model, plus you can still
@@ -185,15 +229,15 @@ class Sparql {
 				return
 			qe = QueryExecutionFactory.create(query, tmpModel, initialBindings)
 		}
-				
+
 		try {
 			for (ResultSet rs = qe.execSelect(); rs.hasNext() ; ) {
 				QuerySolution sol = rs.nextSolution();
 				Map<String, Object> row = new HashMap<String, Object>();
 				for (Iterator<String> varNames = sol.varNames(); varNames.hasNext(); ) {
-						String varName = varNames.next();
-						RDFNode varNode = sol.get(varName);
-						row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()));
+					String varName = varNames.next();
+					RDFNode varNode = sol.get(varName);
+					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()));
 				}
 				closure.call(row)
 			}
@@ -201,22 +245,22 @@ class Sparql {
 			qe.close();
 		}
 	}
-	
-	
+
+
 	/**
-	* <code>execConstruct</code>
-	*
-	* Template method for executing a CONSTRUCT statement
-	* No mapper is used as the mapping is performed in the SPARQL
-	*
-	* @param sparql
-	* @return new Model
-	*/
+	 * <code>execConstruct</code>
+	 *
+	 * Template method for executing a CONSTRUCT statement
+	 * No mapper is used as the mapping is performed in the SPARQL
+	 *
+	 * @param sparql
+	 * @return new Model
+	 */
 	Model construct(String sparql) {
 		Model m = null
 		QueryExecution qe = null
 		try {
-			
+
 			if (model) {
 				qe = QueryExecutionFactory.create(sparql, model);
 			} else {
@@ -226,18 +270,21 @@ class Sparql {
 				if (config.timeout) {
 					((QueryEngineHTTP)qe).addParam("timeout", config.timeout as String)
 				}
+				if (user) {
+					((QueryEngineHTTP)qe).setBasicAuthentication(user, pass);
+				}
 			}
-			
+
 			m = qe.execConstruct();
 		} catch (Exception e) {
 			log.error "Error executing construct with ${sparql}", e
 		} finally {
-			if (qe) { 
+			if (qe) {
 				qe.close();
 			}
 		}
 		return m;
-   }
+	}
 
 
 }

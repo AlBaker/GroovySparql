@@ -1,4 +1,4 @@
-/* Copyright (C) 2011 Al Baker
+/* Copyright (C) 2013 Al Baker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ package groovy.sparql
  * 
  * Test class for object query binding
  * 
- * @author ajb
+ * @author Al Baker
  *
  */
 class GroovyWiki {
 
-	def subject = new URI("http://dbpedia.org/resource/Groovy_%28programming_language%29")
-	def predicate = new URI("http://dbpedia.org/ontology/abstract")
+	def subject = new URI("urn:test")
+	def predicate = new URI("urn:test1:name")
 }
