@@ -1,12 +1,15 @@
 apply plugin:"groovy"
 apply plugin:"eclipse"
 apply plugin:"maven"
+apply plugin: 'signing'
 
+group = 'com.github.albaker'
+version = '0.6'
 
 repositories {
 	mavenLocal()
 	mavenCentral()
-	
+
 	// for GPars
 	mavenRepo urls: ["http://snapshots.repository.codehaus.org/"]
 	//add repositories for optional dependencies
@@ -18,14 +21,75 @@ dependencies {
 	compile 'org.apache.jena:jena:2.7.4'
 	compile 'org.apache.jena:jena-arq:2.9.4'
 	compile 'org.codehaus.gpars:gpars:1.0.0'
-	
+
 	testCompile group: 'junit', name: 'junit', version: '4.8.2'
+}
+
+task sourceJar(type: Jar) {
+	description 'An archive of the source code for Maven Central'
+	classifier 'sources'
+	from sourceSets.main.groovy
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+	classifier = 'javadoc'
+	from 'build/docs/javadoc'
+}
+
+
+artifacts {
+	archives javadocJar, sourceJar
+}
+
+signing {
+	sign configurations.archives
+	required { gradle.taskGraph.hasTask(uploadArchives) }
 }
 
 configure(install.repositories.mavenInstaller) {
 	pom.project {
-		version '0.5'
-		artifactId 'groovy-sparql'
-		groupId 'org.codehaus.groovy.sparql'
+		version '0.6'
+		artifactId 'GroovySparql'
+		groupId 'com.github.albaker'
+	}
+}
+
+uploadArchives {
+	repositories {
+		mavenDeployer {
+			beforeDeployment { MavenDeployment deployment -> signPom(deployment) }
+
+			repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+			  authentication(userName: sonatypeUsername, password: sonatypePassword)
+			}
+
+			pom.project {
+			   name 'GroovySparql'
+			   packaging 'jar'
+			   description 'Groovy SPARQL provides an easy to use Groovy API for W3C standard SPARQL endpoints'
+			   url 'https://github.com/AlBaker/GroovySparql'
+
+			   scm {
+				   url 'scm:git://github.com/AlBaker/GroovySparql.git'
+				   connection 'scm:git://github.com/AlBaker/GroovySparql.git'
+				   developerConnection 'scm:git://github.com/AlBaker/GroovySparql.git'
+			   }
+
+			   licenses {
+				   license {
+					   name 'The Apache Software License, Version 2.0'
+					   url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+					   distribution 'repo'
+				   }
+			   }
+
+			   developers {
+				   developer {
+					   id 'albaker'
+					   name 'Al Baker'
+				   }
+			   }
+		   }
+		}
 	}
 }
