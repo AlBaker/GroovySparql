@@ -7,6 +7,9 @@ The design is straight forward - provide idiomatic Groovy APIs over Apache Jena,
 
 ## Simple example
 
+	@Grab('com.github.albaker:GroovySparql:0.6')
+	import groovy.sparql.*
+ 
 	// SPARQL 1.0 or 1.1 endpoint
         def sparql = new Sparql(endpoint:"http://localhost:1234/testdb/query", user:"user", pass:"pass")
 		
