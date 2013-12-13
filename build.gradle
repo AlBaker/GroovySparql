@@ -9,17 +9,12 @@ version = '0.6'
 repositories {
 	mavenLocal()
 	mavenCentral()
-
-	// for GPars
-	mavenRepo urls: ["http://snapshots.repository.codehaus.org/"]
-	//add repositories for optional dependencies
-	mavenRepo urls: ['http://repository.jboss.org/maven2/']
 }
 
 dependencies {
-	groovy group: 'org.codehaus.groovy', name: 'groovy', version: '2.0.6'
-	compile 'org.apache.jena:jena:2.7.4'
-	compile 'org.apache.jena:jena-arq:2.9.4'
+	groovy group: 'org.codehaus.groovy', name: 'groovy', version: '2.2.1'
+	compile 'org.apache.jena:jena:2.11.0'
+	compile 'org.apache.jena:jena-arq:2.11.0'
 	compile 'org.codehaus.gpars:gpars:1.0.0'
 
 	testCompile group: 'junit', name: 'junit', version: '4.8.2'
