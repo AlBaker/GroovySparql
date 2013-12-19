@@ -148,7 +148,7 @@ class TestRDFBuilder {
 			}
 			
 		}
-		assertEquals(model.toString(), """<ModelCom   {urn:test#joe @urn:test1#name "joe"} | >""")
+		assertEquals(model.toString(), """<ModelCom   {urn:test#joe @urn:test1#name "joe"} |  [urn:test#joe, urn:test1#name, "joe"]>""")
 	}
 	
 	@Test
@@ -165,6 +165,17 @@ class TestRDFBuilder {
 			
 		}
 		assertEquals("<rdf:RDF", reader.readLine());
+	}
+	
+	@Test
+	public void testInsertMethod() {
+		
+		def writer = new PrintWriter(out)
+		def builder = new RDFBuilder(writer)
+		
+		builder << ["urn:a", "urn:b", "c"]
+		assertTrue(builder.model.contains(builder.model.createResource("urn:a"), builder.model.createProperty("urn:b")))
+		
 	}
 	
 }

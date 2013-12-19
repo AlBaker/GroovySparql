@@ -71,6 +71,10 @@ class RDFBuilder extends BuilderSupport {
 		}
 	}
 	
+	/**
+	 * Constructor
+	 * @param out output stream to write the RDF
+	 */
 	def RDFBuilder(OutputStream out) { 
 		initInternal()
 		os = out
@@ -249,4 +253,20 @@ class RDFBuilder extends BuilderSupport {
 			runOutputHooks()
 		}
     }
+	
+	void leftShift(input) {
+		def subject = input[0]
+		def property = input[1]
+		def object = input[2]
+		println "Subject: $subject : $property  : $object"
+		if (!subject | !property || !object) { 
+			return null
+		}
+		
+		model.add(model.createStatement(
+			model.createResource(subject),
+			model.createProperty(property),
+			model.createLiteral(object)))
+	}
+	
 }

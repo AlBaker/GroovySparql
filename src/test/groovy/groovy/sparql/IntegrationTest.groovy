@@ -25,7 +25,7 @@ class IntegrationTest {
 	public void setUp() throws Exception {
 	}
 
-	@Test
+	//@Test
 	public void testWithExternal() {
 		def sparql = new Sparql(endpoint:"http://localhost:5822/petstore/query", user:"admin", pass:"admin")
 		
@@ -37,7 +37,7 @@ class IntegrationTest {
 		
 	}
 	
-	@Test
+	//@Test
 	public void testEach() {
 		def sparql = new Sparql(endpoint:"http://localhost:5822/petstore/query", user:"admin", pass:"admin")
 		
