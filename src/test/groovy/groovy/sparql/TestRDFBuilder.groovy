@@ -149,6 +149,8 @@ class TestRDFBuilder {
 			
 		}
 		assertEquals(model.toString(), """<ModelCom   {urn:test#joe @urn:test1#name "joe"} |  [urn:test#joe, urn:test1#name, "joe"]>""")
+		assertTrue(builder.model.contains(builder.model.createResource("urn:test#joe"), builder.model.createProperty("urn:test1#name")))
+		
 	}
 	
 	@Test
@@ -175,6 +177,9 @@ class TestRDFBuilder {
 		
 		builder << ["urn:a", "urn:b", "c"]
 		assertTrue(builder.model.contains(builder.model.createResource("urn:a"), builder.model.createProperty("urn:b")))
+		
+		builder.insert([["urn:d", "urn:e", "d"]])
+		assertTrue(builder.model.contains(builder.model.createResource("urn:d"), builder.model.createProperty("urn:e")))
 		
 	}
 	

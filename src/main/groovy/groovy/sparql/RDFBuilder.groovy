@@ -14,6 +14,7 @@
  */
 package groovy.sparql
 
+import com.hp.hpl.jena.rdf.model.Literal
 import com.hp.hpl.jena.rdf.model.Model
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -254,19 +255,52 @@ class RDFBuilder extends BuilderSupport {
 		}
     }
 	
-	void leftShift(input) {
+	def generateLiteral(obj) {
+		def lit = null
+		if (obj.class == String) {
+			lit = obj
+		} else if (obj.class == URI) {
+			lit = model.createResource(obj.toString())
+		} else if (obj instanceof Resource) { 
+			lit = obj
+		} else if (obj instanceof Literal) {
+			lit = obj
+		}
+		return lit;
+	}
+	
+	void insert(List input) {
+
 		def subject = input[0]
+		
+		if (subject.class == java.util.ArrayList.class) { 
+			
+			input.each { arr ->
+				println arr
+				insert(arr)
+			}
+			return
+		}
+		
 		def property = input[1]
 		def object = input[2]
-		println "Subject: $subject : $property  : $object"
-		if (!subject | !property || !object) { 
+		
+		if (!subject | !property || !object) {
 			return null
 		}
 		
 		model.add(model.createStatement(
 			model.createResource(subject),
 			model.createProperty(property),
-			model.createLiteral(object)))
+			generateLiteral(object)))
+		
+	}
+	
+	void leftShift(input) {
+
+		insert(input)
+		
+		
 	}
 	
 }
