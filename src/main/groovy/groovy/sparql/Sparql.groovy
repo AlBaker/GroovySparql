@@ -105,11 +105,12 @@ class Sparql {
 
 		/**
 		 * 
-		 TODO: Uncomment when https://issues.apache.org/jira/browse/JENA-56 is fixed
-		 if (config.timeout) {
-		 qe.setTimeout( config?.timeout?.toLong() )
-		 }
+		 Per https://issues.apache.org/jira/browse/JENA-56 is fixed
 		 */
+		 if (config.timeout) {
+			 qe.setConnectTimeout( config?.timeout?.toLong() )
+		 }
+		
 
 		try {
 			for (ResultSet rs = qe.execSelect(); rs.hasNext() ; ) {

@@ -101,7 +101,10 @@ class TestRDFBuilder {
 			}
 			
 		}
-		assertEquals("<urn:test#joe>", reader.readLine())
+		
+		assertTrue(builder.model.contains(builder.model.createResource("urn:test#joe"), builder.model.createProperty("urn:test1#name")))
+		
+		
 	}
 	
 	@Test
@@ -116,7 +119,8 @@ class TestRDFBuilder {
 			}
 			
 		}
-		assertEquals("<urn:test#joe>", reader.readLine());
+		assertTrue(builder.model.contains(builder.model.createResource("urn:test#joe"), builder.model.createProperty("urn:test1#name")))
+		
 	}
 	
 	@Test
