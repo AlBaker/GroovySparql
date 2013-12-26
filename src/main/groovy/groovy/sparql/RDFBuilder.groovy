@@ -183,12 +183,12 @@ class RDFBuilder extends BuilderSupport {
             defaultNamespace = value
         }
 				
-		if (name == "subject") { 
+		if (name == "subject" || name == "s") { 
 			
 			def uri = handleNamespace(value)
 			
 			Resource r = model.createResource(uri)
-			if (getCurrent() == "predicate") { 
+			if (getCurrent() == "predicate" || getCurrent() == "p") { 
 				if (lastPredicate) { 
 					def fullPredicate = handleNamespace(lastPredicate)
 					lastResource.addProperty(model.createProperty(fullPredicate), r)
@@ -200,7 +200,7 @@ class RDFBuilder extends BuilderSupport {
 			return r
 		}
 		
-		if (name == "predicate") { 
+		if (name == "predicate" || name == "p") { 
 			lastPredicate = value
 		}
     
@@ -221,6 +221,10 @@ class RDFBuilder extends BuilderSupport {
 	    return name
     }
     
+	def p(attributes) {
+		predicate(attributes)
+	}
+	
 	def predicate(attributes) { 
 		def resource = getCurrent()
 		

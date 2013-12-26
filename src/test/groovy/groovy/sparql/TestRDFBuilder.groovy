@@ -86,6 +86,45 @@ class TestRDFBuilder {
 		assertTrue(builder.ns.containsKey("ns3"))
 
 	}
+	
+	@Test
+	public void testShorthandConstruction() {
+		def builder = new RDFBuilder()
+		builder.registerOutputHook { println "Finished building" }
+		def output = builder.n3 {
+			defaultNamespace "urn:test"
+			namespace ns1:"urn:test1"
+			namespace ns2:"urn:test3"
+			namespace ns3:"http://example.org"
+			
+			s("#fred") {
+			   p "ns1:name":"fred"
+			   p "ns1:last":"smith"
+			   p "ns3:city":"New York City"
+			   p("ns3:friend") {
+				   s("#roger") {
+					   p "ns1:name":"roger"
+					   p "ns1:last":"baker"
+					   p("ns3:friend") {
+						   s("#alex") {
+							   p "ns1:name":"alex"
+							   p "ns1:last":"stevens"
+						   }
+					   }
+				   }
+			   }
+				
+			}
+			
+		}
+		println output
+		assertEquals(output.size(), 9 as Long)
+		assertTrue(builder.defaultNamespace == "urn:test")
+		assertTrue(builder.ns.containsKey("ns1"))
+		assertTrue(builder.ns.containsKey("ns2"))
+		assertTrue(builder.ns.containsKey("ns3"))
+
+	}
 		
 	@Test
 	public void testOutputStreamTurtle() { 
