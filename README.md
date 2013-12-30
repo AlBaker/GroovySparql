@@ -20,6 +20,19 @@ The design is straight forward - provide idiomatic Groovy APIs over Apache Jena,
 		println "${s} : ${p} : ${o}"
 	}
 
+## RDF Builder
+
+GroovySparql does include a way to generate RDF:
+
+    def output = builder.turtle {
+			defaultNamespace "urn:test"
+			namespace ns1:"urn:test1"
+			subject("#joe") {
+			   predicate "ns1:name":"joe"	
+			}
+			
+	}
+
 
 ## License
 
