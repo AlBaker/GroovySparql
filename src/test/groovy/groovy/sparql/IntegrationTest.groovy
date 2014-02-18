@@ -49,7 +49,7 @@ class IntegrationTest {
 		
 	}
 	
-	@Test
+	//@Test
 	public void testUpdate() {
 		def sparql = new Sparql(updateEndpoint:"http://localhost:5820/league/update", user:"admin", pass:"admin")
 		def updateQuery = """
