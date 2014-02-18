@@ -5,7 +5,7 @@ apply plugin: 'signing'
 apply plugin: 'codenarc'
 
 group = 'com.github.albaker'
-version = '0.6'
+version = '0.7'
 
 repositories {
 	mavenLocal()
