@@ -49,4 +49,15 @@ class IntegrationTest {
 		
 	}
 	
+	@Test
+	public void testUpdate() {
+		def sparql = new Sparql(updateEndpoint:"http://localhost:5820/league/update", user:"admin", pass:"admin")
+		def updateQuery = """
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+INSERT { <http://example/egbook> dc:title  "This is an example title5" } WHERE {}
+		"""
+		sparql.update(updateQuery)
+		
+	}
+	
 }

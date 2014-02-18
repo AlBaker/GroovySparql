@@ -17,6 +17,15 @@ package groovy.sparql
 
 import groovy.util.logging.*
 
+
+import org.apache.http.auth.AuthScope
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider
+import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.impl.client.BasicCredentialsProvider
+import org.apache.http.protocol.BasicHttpContext
+import org.apache.http.protocol.HttpContext
+
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
@@ -28,10 +37,16 @@ import com.hp.hpl.jena.query.QuerySolutionMap
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.query.ResultSetFormatter;
 import com.hp.hpl.jena.query.Syntax;
-
+import com.hp.hpl.jena.sparql.modify.UpdateProcessRemote;
+import com.hp.hpl.jena.sparql.modify.UpdateProcessRemoteForm
+import com.hp.hpl.jena.update.UpdateExecutionFactory;
+import com.hp.hpl.jena.update.UpdateFactory;
+import com.hp.hpl.jena.update.UpdateProcessor
+import com.hp.hpl.jena.update.UpdateRequest;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
+
 
 
 /**
@@ -42,6 +57,7 @@ import com.hp.hpl.jena.rdf.model.RDFNode;
 class Sparql {
 
 	String endpoint
+	String updateEndpoint
 	Model model
 	String user
 	String pass
@@ -107,10 +123,10 @@ class Sparql {
 		 * 
 		 Per https://issues.apache.org/jira/browse/JENA-56 is fixed
 		 */
-		 if (config.timeout) {
-			 qe.setConnectTimeout( config?.timeout?.toLong() )
-		 }
-		
+		if (config.timeout) {
+			qe.setConnectTimeout( config?.timeout?.toLong() )
+		}
+
 
 		try {
 			for (ResultSet rs = qe.execSelect(); rs.hasNext() ; ) {
@@ -155,7 +171,7 @@ class Sparql {
 		try {
 			for (ResultSet rs = qe.execSelect(); rs.hasNext() ; ) {
 				QuerySolution sol = rs.nextSolution();
-				
+
 				Map<String, Object> row = new HashMap<String, Object>();
 				for (Iterator<String> varNames = sol.varNames(); varNames.hasNext(); ) {
 					String varName = varNames.next();
@@ -285,6 +301,38 @@ class Sparql {
 			}
 		}
 		return m;
+	}
+
+	/**
+	 * <code>update</code>
+	 * @param query - SPARQL Update query
+	 * 
+	 * This method will attempt to use the updateEndpoint, and default to endpoint
+	 * 
+	 */
+	void update(String query) {
+		try {
+			HttpContext httpContext = new BasicHttpContext();
+			CredentialsProvider provider = new BasicCredentialsProvider();
+			provider.setCredentials(new AuthScope(AuthScope.ANY_HOST,
+					AuthScope.ANY_PORT), new UsernamePasswordCredentials(user, pass));
+			httpContext.setAttribute(ClientContext.CREDS_PROVIDER, provider);
+
+			UpdateRequest request = UpdateFactory.create() ;
+
+			request.add(query);
+
+			def ep = (updateEndpoint != null) ? updateEndpoint: endpoint
+
+			UpdateProcessor processor = UpdateExecutionFactory
+					.createRemoteForm(request, ep);
+			((UpdateProcessRemoteForm)processor).setHttpContext(httpContext);
+			processor.execute();
+		} catch (Exception e) {
+			log.error "Error executing update with ${query}", e
+			throw new RuntimeException(e)
+		}
+
 	}
 
 
