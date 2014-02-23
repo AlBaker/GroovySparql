@@ -19,37 +19,44 @@ import groovy.util.logging.*
 
 
 import org.apache.http.auth.AuthScope
-import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.auth.UsernamePasswordCredentials
 import org.apache.http.client.CredentialsProvider
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.ClientContext
 import org.apache.http.impl.client.BasicCredentialsProvider
 import org.apache.http.protocol.BasicHttpContext
 import org.apache.http.protocol.HttpContext
 
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
+import com.hp.hpl.jena.query.Query
+import com.hp.hpl.jena.query.QueryExecution
+import com.hp.hpl.jena.query.QueryExecutionFactory
 import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP
-import com.hp.hpl.jena.query.ARQ;
-import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.QuerySolution;
+import com.hp.hpl.jena.query.ARQ
+import com.hp.hpl.jena.query.QueryFactory
+import com.hp.hpl.jena.query.QuerySolution
 import com.hp.hpl.jena.query.QuerySolutionMap
-import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.query.ResultSetFormatter;
-import com.hp.hpl.jena.query.Syntax;
-import com.hp.hpl.jena.sparql.modify.UpdateProcessRemote;
+import com.hp.hpl.jena.query.ResultSet
+import com.hp.hpl.jena.query.ResultSetFormatter
+import com.hp.hpl.jena.query.Syntax
+import com.hp.hpl.jena.sparql.modify.UpdateProcessRemote
 import com.hp.hpl.jena.sparql.modify.UpdateProcessRemoteForm
-import com.hp.hpl.jena.update.UpdateExecutionFactory;
-import com.hp.hpl.jena.update.UpdateFactory;
+import com.hp.hpl.jena.update.UpdateExecutionFactory
+import com.hp.hpl.jena.update.UpdateFactory
 import com.hp.hpl.jena.update.UpdateProcessor
-import com.hp.hpl.jena.update.UpdateRequest;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.update.UpdateRequest
+import com.hp.hpl.jena.rdf.model.Model
+import com.hp.hpl.jena.rdf.model.ModelFactory
+import com.hp.hpl.jena.rdf.model.RDFNode
 
 
 
 /**
+ * SPARQL
+ * 
+ * Primary class for working with a SPARQL endpoint
+ * 
+ * Can be initialized with an endpoint, an update endpoint (for SPARQL 1.1 Update),
+ * or an Apache Jena model
+ * 
  * @author Al Baker
  *
  */
@@ -61,31 +68,74 @@ class Sparql {
 	Model model
 	String user
 	String pass
+	
+	// Apache Jena config parameter for setting HTTP timeout
+	private final String timeoutParam = 'timeout'
 
 	def config = [:]
 
+	/**
+	 * Static Factory 
+	 * @param url sparql endpoint URL
+	 * @return instance of Sparql
+	 */
 	public static Sparql newInstance(String url) {
 		new Sparql(endpoint:url)
 	}
 
+	/**
+	 * Static factory
+	 * @param model Apache Jena model
+	 * @return instance of Sparql
+	 */
 	public static Sparql newInstance(Model model) {
 		new Sparql(model:model)
 	}
 
+	/**
+	 * Constructor
+	 * Construct the Sparql object with an Apache Jena model
+	 * @param model
+	 */
 	Sparql(Model model) { this.model = model }
 
+	/**
+	 * Constructor
+	 * Endpoint can be a query endpoint
+	 * If updateEndpoint is not set, this parameter will be used for SPARQL update
+	 * @param endpoint
+	 */
 	Sparql(String endpoint) { this.endpoint = endpoint }
 
+	/**
+	 * Constructor
+	 * 
+	 * Add configuration via a map, used for credentials for the HTTP Layer
+	 * 
+	 * @param model
+	 * @param config
+	 */
 	Sparql(Model model, Map config) {
 		this.model = model
 		this.config = config
 	}
 
+	/**
+	 * Constructor
+	 * @param endpoint
+	 * @param config
+	 */
 	Sparql(String endpoint, Map config) {
 		this.endpoint = endpoint
 		this.config = config
 	}
 
+	/**
+	 * Empty constructor
+	 * The properties of the Sparql class are public so this can be used if property injection happens eleswhere
+	 * This allows this class to be easliy used in dependency injection frameworks, where you can either do
+	 * constructor injection or property injection post-construction
+	 */
 	Sparql() { }
 
 	/**
@@ -112,10 +162,10 @@ class Sparql {
 				return
 			qe = QueryExecutionFactory.sparqlService(endpoint, query)
 			if (config.timeout) {
-				((QueryEngineHTTP)qe).addParam("timeout", config.timeout as String)
+				((QueryEngineHTTP)qe).addParam(timeoutParam, config.timeout as String)
 			}
 			if (user) {
-				((QueryEngineHTTP)qe).setBasicAuthentication(user, pass?.toCharArray());
+				((QueryEngineHTTP)qe).setBasicAuthentication(user, pass?.toCharArray())
 			}
 		}
 
@@ -130,12 +180,12 @@ class Sparql {
 
 		try {
 			for (ResultSet rs = qe.execSelect(); rs.hasNext() ; ) {
-				QuerySolution sol = rs.nextSolution();
-				Map<String, Object> row = new HashMap<String, Object>();
+				QuerySolution sol = rs.nextSolution()
+				Map<String, Object> row = [:]
 				for (Iterator<String> varNames = sol.varNames(); varNames.hasNext(); ) {
-					String varName = varNames.next();
-					RDFNode varNode = sol.get(varName);
-					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()));
+					String varName = varNames.next()
+					RDFNode varNode = sol.get(varName)
+					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()))
 				}
 				closure.call(row)
 			}
@@ -155,16 +205,16 @@ class Sparql {
 		 * keyword.
 		 */
 		if (model) {
-			qe = QueryExecutionFactory.create(query, model);
+			qe = QueryExecutionFactory.create(query, model)
 		} else {
 			if (!endpoint)
 				return
 			qe = QueryExecutionFactory.sparqlService(endpoint, query)
 			if (config.timeout) {
-				((QueryEngineHTTP)qe).addParam("timeout", config.timeout as String)
+				((QueryEngineHTTP)qe).addParam(timeoutParam, config.timeout as String)
 			}
 			if (user) {
-				((QueryEngineHTTP)qe).setBasicAuthentication(user, pass?.toCharArray());
+				((QueryEngineHTTP)qe).setBasicAuthentication(user, pass?.toCharArray())
 			}
 		}
 
@@ -172,11 +222,11 @@ class Sparql {
 			for (ResultSet rs = qe.execSelect(); rs.hasNext() ; ) {
 				QuerySolution sol = rs.nextSolution();
 
-				Map<String, Object> row = new HashMap<String, Object>();
+				Map<String, Object> row = [:]
 				for (Iterator<String> varNames = sol.varNames(); varNames.hasNext(); ) {
-					String varName = varNames.next();
-					RDFNode varNode = sol.get(varName);
-					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()));
+					String varName = varNames.next()
+					RDFNode varNode = sol.get(varName)
+					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()))
 				}
 				closure.delegate = row
 				closure.call()
@@ -198,12 +248,12 @@ class Sparql {
 
 		Query query = QueryFactory.create(sparql, Syntax.syntaxARQ)
 		QueryExecution qe = null
-		QuerySolutionMap initialBindings = new QuerySolutionMap();
+		QuerySolutionMap initialBindings = new QuerySolutionMap()
 
 		Model tmpModel
 
 		if (!model) {
-			tmpModel = ModelFactory.createDefaultModel();
+			tmpModel = ModelFactory.createDefaultModel()
 		} else {
 			tmpModel = model
 		}
@@ -249,12 +299,12 @@ class Sparql {
 
 		try {
 			for (ResultSet rs = qe.execSelect(); rs.hasNext() ; ) {
-				QuerySolution sol = rs.nextSolution();
-				Map<String, Object> row = new HashMap<String, Object>();
+				QuerySolution sol = rs.nextSolution()
+				Map<String, Object> row = [:]
 				for (Iterator<String> varNames = sol.varNames(); varNames.hasNext(); ) {
-					String varName = varNames.next();
-					RDFNode varNode = sol.get(varName);
-					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()));
+					String varName = varNames.next()
+					RDFNode varNode = sol.get(varName)
+					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()))
 				}
 				closure.call(row)
 			}
@@ -279,20 +329,20 @@ class Sparql {
 		try {
 
 			if (model) {
-				qe = QueryExecutionFactory.create(sparql, model);
+				qe = QueryExecutionFactory.create(sparql, model)
 			} else {
 				if (!endpoint)
 					return
 				qe = QueryExecutionFactory.sparqlService(endpoint, sparql)
 				if (config.timeout) {
-					((QueryEngineHTTP)qe).addParam("timeout", config.timeout as String)
+					((QueryEngineHTTP)qe).addParam(timeoutParam, config.timeout as String)
 				}
 				if (user) {
-					((QueryEngineHTTP)qe).setBasicAuthentication(user, pass);
+					((QueryEngineHTTP)qe).setBasicAuthentication(user, pass)
 				}
 			}
 
-			m = qe.execConstruct();
+			m = qe.execConstruct()
 		} catch (Exception e) {
 			log.error "Error executing construct with ${sparql}", e
 		} finally {
@@ -312,22 +362,23 @@ class Sparql {
 	 */
 	void update(String query) {
 		try {
-			HttpContext httpContext = new BasicHttpContext();
-			CredentialsProvider provider = new BasicCredentialsProvider();
+			HttpContext httpContext = new BasicHttpContext()
+			CredentialsProvider provider = new BasicCredentialsProvider()
 			provider.setCredentials(new AuthScope(AuthScope.ANY_HOST,
-					AuthScope.ANY_PORT), new UsernamePasswordCredentials(user, pass));
-			httpContext.setAttribute(ClientContext.CREDS_PROVIDER, provider);
+					AuthScope.ANY_PORT), new UsernamePasswordCredentials(user, pass))
+			httpContext.setAttribute(ClientContext.CREDS_PROVIDER, provider)
 
-			UpdateRequest request = UpdateFactory.create() ;
+			UpdateRequest request = UpdateFactory.create() 
 
-			request.add(query);
+			request.add(query)
 
 			def ep = (updateEndpoint != null) ? updateEndpoint: endpoint
 
 			UpdateProcessor processor = UpdateExecutionFactory
-					.createRemoteForm(request, ep);
-			((UpdateProcessRemoteForm)processor).setHttpContext(httpContext);
-			processor.execute();
+					.createRemoteForm(request, ep)
+			((UpdateProcessRemoteForm)processor).setHttpContext(httpContext)
+			processor.execute()
+			
 		} catch (Exception e) {
 			log.error "Error executing update with ${query}", e
 			throw new RuntimeException(e)
