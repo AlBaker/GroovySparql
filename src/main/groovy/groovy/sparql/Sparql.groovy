@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Al Baker
+/* Copyright (C) 2013-2014 Al Baker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import com.hp.hpl.jena.query.QueryFactory
 import com.hp.hpl.jena.query.QuerySolution
 import com.hp.hpl.jena.query.QuerySolutionMap
 import com.hp.hpl.jena.query.ResultSet
-import com.hp.hpl.jena.query.ResultSetFormatter
 import com.hp.hpl.jena.query.Syntax
 import com.hp.hpl.jena.sparql.modify.UpdateProcessRemote
 import com.hp.hpl.jena.sparql.modify.UpdateProcessRemoteForm
@@ -46,6 +45,7 @@ import com.hp.hpl.jena.update.UpdateRequest
 import com.hp.hpl.jena.rdf.model.Model
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import com.hp.hpl.jena.rdf.model.RDFNode
+import com.hp.hpl.jena.shared.JenaException
 
 
 
@@ -79,7 +79,7 @@ class Sparql {
 	 * @param url sparql endpoint URL
 	 * @return instance of Sparql
 	 */
-	public static Sparql newInstance(String url) {
+	static Sparql newInstance(String url) {
 		new Sparql(endpoint:url)
 	}
 
@@ -88,7 +88,7 @@ class Sparql {
 	 * @param model Apache Jena model
 	 * @return instance of Sparql
 	 */
-	public static Sparql newInstance(Model model) {
+	static Sparql newInstance(Model model) {
 		new Sparql(model:model)
 	}
 
@@ -156,10 +156,11 @@ class Sparql {
 		 * keyword.
 		 */
 		if (model) {
-			qe = QueryExecutionFactory.create(query, model);
+			qe = QueryExecutionFactory.create(query, model)
 		} else {
-			if (!endpoint)
+			if (!endpoint) { 
 				return
+			}
 			qe = QueryExecutionFactory.sparqlService(endpoint, query)
 			if (config.timeout) {
 				((QueryEngineHTTP)qe).addParam(timeoutParam, config.timeout as String)
@@ -185,12 +186,12 @@ class Sparql {
 				for (Iterator<String> varNames = sol.varNames(); varNames.hasNext(); ) {
 					String varName = varNames.next()
 					RDFNode varNode = sol.get(varName)
-					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()))
+					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().value : varNode.toString()))
 				}
 				closure.call(row)
 			}
 		} finally {
-			qe.close();
+			qe.close()
 		}
 	}
 
@@ -207,8 +208,9 @@ class Sparql {
 		if (model) {
 			qe = QueryExecutionFactory.create(query, model)
 		} else {
-			if (!endpoint)
+			if (!endpoint) {
 				return
+			}
 			qe = QueryExecutionFactory.sparqlService(endpoint, query)
 			if (config.timeout) {
 				((QueryEngineHTTP)qe).addParam(timeoutParam, config.timeout as String)
@@ -220,19 +222,19 @@ class Sparql {
 
 		try {
 			for (ResultSet rs = qe.execSelect(); rs.hasNext() ; ) {
-				QuerySolution sol = rs.nextSolution();
+				QuerySolution sol = rs.nextSolution()
 
 				Map<String, Object> row = [:]
 				for (Iterator<String> varNames = sol.varNames(); varNames.hasNext(); ) {
 					String varName = varNames.next()
 					RDFNode varNode = sol.get(varName)
-					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()))
+					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().value : varNode.toString()))
 				}
 				closure.delegate = row
 				closure.call()
 			}
 		} finally {
-			qe.close();
+			qe.close()
 		}
 	}
 
@@ -252,7 +254,7 @@ class Sparql {
 
 		Model tmpModel
 
-		if (!model) {
+		if (model == null) {
 			tmpModel = ModelFactory.createDefaultModel()
 		} else {
 			tmpModel = model
@@ -264,16 +266,16 @@ class Sparql {
 				// terms, however there is a difference between the object of a triple being
 				// a resource OR a literal, so Strings = Literals, URIs = Resources
 				initialBindings.add(key, tmpModel.createResource(value.toString()))
-			} else if (value.class == java.lang.String){
+			} else if (value.class == java.lang.String) {
 				initialBindings.add(key, tmpModel.createLiteral(value.toString()))
 			} else {
 				value.properties.each { propName, propValue ->
 					if (propValue.class == java.lang.String || propValue.class == java.net.URI) {
-						if (propName == "subject") {
+						if (propName == 'subject') {
 							owner.call("${key}Subject".toString(), propValue)
-						} else if (propName == "predicate") {
+						} else if (propName == 'predicate') {
 							owner.call("${key}Predicate".toString(), propValue)
-						} else if (propName == "object") {
+						} else if (propName == 'object') {
 							owner.call("${key}Object".toString(), propValue)
 						}
 					}
@@ -290,10 +292,11 @@ class Sparql {
 		 * keyword.
 		 */
 		if (model) {
-			qe = QueryExecutionFactory.create(query, model, initialBindings);
+			qe = QueryExecutionFactory.create(query, model, initialBindings)
 		} else {
-			if (!endpoint)
+			if (!endpoint) { 
 				return
+			}
 			qe = QueryExecutionFactory.create(query, tmpModel, initialBindings)
 		}
 
@@ -304,12 +307,12 @@ class Sparql {
 				for (Iterator<String> varNames = sol.varNames(); varNames.hasNext(); ) {
 					String varName = varNames.next()
 					RDFNode varNode = sol.get(varName)
-					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().getValue() : varNode.toString()))
+					row.put(varName, (varNode.isLiteral() ? varNode.asLiteral().value : varNode.toString()))
 				}
 				closure.call(row)
 			}
 		} finally {
-			qe.close();
+			qe.close()
 		}
 	}
 
@@ -331,8 +334,9 @@ class Sparql {
 			if (model) {
 				qe = QueryExecutionFactory.create(sparql, model)
 			} else {
-				if (!endpoint)
+				if (!endpoint) { 
 					return
+				}
 				qe = QueryExecutionFactory.sparqlService(endpoint, sparql)
 				if (config.timeout) {
 					((QueryEngineHTTP)qe).addParam(timeoutParam, config.timeout as String)
@@ -343,14 +347,14 @@ class Sparql {
 			}
 
 			m = qe.execConstruct()
-		} catch (Exception e) {
+		} catch (JenaException e) {
 			log.error "Error executing construct with ${sparql}", e
 		} finally {
 			if (qe) {
-				qe.close();
+				qe.close()
 			}
 		}
-		return m;
+		m
 	}
 
 	/**
@@ -379,9 +383,9 @@ class Sparql {
 			((UpdateProcessRemoteForm)processor).setHttpContext(httpContext)
 			processor.execute()
 			
-		} catch (Exception e) {
+		} catch (JenaException e) {
 			log.error "Error executing update with ${query}", e
-			throw new RuntimeException(e)
+			throw new SparqlException(e)
 		}
 
 	}

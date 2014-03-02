@@ -15,15 +15,10 @@
 package groovy.sparql
 
 /**
- * GroovyWiki
- * 
- * Test class for object query binding
- * 
+ * SparqlException for capturing any Apache Jena specific items
  * @author Al Baker
  *
  */
-class GroovyWiki {
+class SparqlException extends RuntimeException {
 
-	def subject = new URI("urn:test")
-	def predicate = new URI("urn:test1:name")
 }
