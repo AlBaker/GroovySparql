@@ -53,18 +53,18 @@ class RDFBuilder extends BuilderSupport {
     def format
 	
 	// Map of root closure types to jena formats
-	def jenaFormats = [xml:"RDF/XML", xmlabbrev:"RDF/XML-ABBREV", ntriple:"N-TRIPLE", n3:"N3", turtle:"TURTLE"]
+	def jenaFormats = [xml:'RDF/XML', xmlabbrev:'RDF/XML-ABBREV', ntriple:'N-TRIPLE', n3:'N3', turtle:'TURTLE']
 	
 	// Output targets
 	def writer
 	def os
 	def outputModel
     
-    def RDFBuilder() {
-       initInternal()
-    }
+    	RDFBuilder() {
+       		initInternal()
+    	}
 	
-	def RDFBuilder(Writer w) { 
+	RDFBuilder(Writer w) { 
 		initInternal()
 		this.writer = w
 		hooks << { processModel ->
@@ -76,7 +76,7 @@ class RDFBuilder extends BuilderSupport {
 	 * Constructor
 	 * @param out output stream to write the RDF
 	 */
-	def RDFBuilder(OutputStream out) { 
+	RDFBuilder(OutputStream out) { 
 		initInternal()
 		os = out
 		hooks << { processModel ->
@@ -84,7 +84,7 @@ class RDFBuilder extends BuilderSupport {
 		}
 	}
 	
-	def RDFBuilder(Model output) { 
+	RDFBuilder(Model output) { 
 		initInternal()
 		this.outputModel = output
 		hooks << { processModel ->
@@ -289,7 +289,7 @@ class RDFBuilder extends BuilderSupport {
 		def property = input[1]
 		def object = input[2]
 		
-		if (!subject | !property || !object) {
+		if (!subject || !property || !object) {
 			return null
 		}
 		
