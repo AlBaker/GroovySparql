@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-	groovy group: 'org.codehaus.groovy', name: 'groovy', version: '2.2.1'
+	groovy group: 'org.codehaus.groovy', name: 'groovy', version: '2.3.2'
 	compile 'org.apache.jena:jena:2.11.1'
 	compile 'org.apache.jena:jena-arq:2.11.1'
 	compile 'org.codehaus.gpars:gpars:1.1.0'
