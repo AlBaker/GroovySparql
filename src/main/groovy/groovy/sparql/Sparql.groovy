@@ -357,6 +357,7 @@ class Sparql {
 		m
 	}
 
+	
 	/**
 	 * <code>update</code>
 	 * @param query - SPARQL Update query
@@ -390,5 +391,32 @@ class Sparql {
 
 	}
 
+    /**
+     * <code>ask</code>
+     * @param query - ASK SPARQL Query
+     * @return boolean
+     */
+    boolean ask(String sparql) {
+
+        Query query = QueryFactory.create(sparql, Syntax.syntaxARQ)
+        QueryExecution qe = null
+
+        if (model) {
+            qe = QueryExecutionFactory.create(query, model)
+        } else {
+            if (!endpoint) {
+                return false
+            }
+            qe = QueryExecutionFactory.sparqlService(endpoint, query)
+            if (config.timeout) {
+                ((QueryEngineHTTP)qe).addParam(timeoutParam, config.timeout as String)
+            }
+            if (user) {
+                ((QueryEngineHTTP)qe).setBasicAuthentication(user, pass?.toCharArray())
+            }
+        }
+
+        return qe.execAsk()
+    }
 
 }

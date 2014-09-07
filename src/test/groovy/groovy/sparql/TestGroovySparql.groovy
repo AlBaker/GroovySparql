@@ -152,5 +152,31 @@ class TestGroovySparql {
 		// DBpedia appears down
 		//assertEquals(result.size(), 1)
 	}
-	
+
+    @Test
+    public void testAsk() {
+
+        def model = ModelFactory.createDefaultModel()
+        def builder = new RDFBuilder(model)
+        //[xml:"RDF/XML", xmlabbrev:"RDF/XML-ABBREV", ntriple:"N-TRIPLE", n3:"N3", turtle:"TURTLE"]
+        def output = builder.model {
+            defaultNamespace "urn:test"
+            namespace ns1:"urn:test1"
+            subject("#joe") {
+                predicate "ns1:name":"joe"
+            }
+
+        }
+
+        sparql = new Sparql(output)
+
+        String dbQuery = """
+            ASK { <urn:test#joe> ?p ?o }
+        """
+
+        def result = sparql.ask(dbQuery)
+        assertTrue(result)
+
+    }
+
 }
