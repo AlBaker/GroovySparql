@@ -213,6 +213,20 @@ class TestRDFBuilder {
 	}
 	
 	@Test
+	public void testOutputJson() {
+		def writer = new PrintWriter(out)
+		def builder = new RDFBuilder(writer)
+		def output = builder.jsonld { 
+			defaultNamespace "urn:test"
+			namespace ns1:"urn:test1"
+			subject("#joe") {
+			   predicate "ns1:name":"joe"
+			}
+		}
+		assertEquals("{", reader.readLine());
+	}
+	
+	@Test
 	public void testInsertMethod() {
 		
 		def writer = new PrintWriter(out)

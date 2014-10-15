@@ -53,7 +53,8 @@ class RDFBuilder extends BuilderSupport {
     def format
 	
 	// Map of root closure types to jena formats
-	def jenaFormats = [xml:'RDF/XML', xmlabbrev:'RDF/XML-ABBREV', ntriple:'N-TRIPLE', n3:'N3', turtle:'TURTLE']
+	def jenaFormats = [xml:'RDF/XML', xmlabbrev:'RDF/XML-ABBREV', 
+		ntriple:'N-TRIPLE', n3:'N3', turtle:'TURTLE', jsonld:"JSONLD"]
 	
 	// Output targets
 	def writer
