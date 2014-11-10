@@ -178,5 +178,21 @@ class TestGroovySparql {
         assertTrue(result)
 
     }
+	
+	@Test
+	public void testFromCsvFile() { 
+		def sparql = Sparql.fromCsvFile("src/test/resources/test.csv")
+		def query = """
+				PREFIX : <src/test/resources/test.csv#>
+				SELECT ?x ?cityName  WHERE 
+					{ ?x :city ?cityName . }
+		"""
+		def r = []
+		def result = sparql.eachRow( query, { row ->
+			
+			r << row.cityName
+		})
+		assertEquals(["A City", "B City", "C City"], r)
+	}
 
 }

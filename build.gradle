@@ -5,7 +5,7 @@ apply plugin: 'signing'
 //apply plugin: 'codenarc'
 
 group = 'com.github.albaker'
-version = '0.8.1'
+version = '0.9.0'
 
 repositories {
 	mavenLocal()
@@ -17,7 +17,7 @@ dependencies {
 	compile 'org.apache.jena:jena:2.12.0'
 	compile 'org.apache.jena:jena-arq:2.12.0'
 	compile 'com.github.jsonld-java:jsonld-java:0.5.0'
-    //compile 'org.apache.jena:jena-csv:1.0.0'
+    compile 'org.apache.jena:jena-csv:1.0.0'
 	compile 'org.codehaus.gpars:gpars:1.1.0'
 
 	testCompile group: 'junit', name: 'junit', version: '4.8.2'

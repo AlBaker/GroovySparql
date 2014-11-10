@@ -47,6 +47,8 @@ import com.hp.hpl.jena.rdf.model.ModelFactory
 import com.hp.hpl.jena.rdf.model.RDFNode
 import com.hp.hpl.jena.shared.JenaException
 
+import org.apache.jena.propertytable.graph.GraphCSV
+
 
 
 /**
@@ -90,6 +92,10 @@ class Sparql {
 	 */
 	static Sparql newInstance(Model model) {
 		new Sparql(model:model)
+	}
+	
+	static Sparql fromCsvFile(String filename) {
+		new Sparql(ModelFactory.createModelForGraph(new GraphCSV(filename)))
 	}
 
 	/**
