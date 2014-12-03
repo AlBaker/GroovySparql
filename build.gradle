@@ -17,6 +17,9 @@ dependencies {
 	compile 'org.apache.jena:jena:2.12.0'
 	compile 'org.apache.jena:jena-arq:2.12.0'
 	compile 'com.github.jsonld-java:jsonld-java:0.5.0'
+	// this can be replaced after jena 2.12.2 or later
+	// it was partially merged in 2.12.1, but not fully so it's incompatible
+	// with 2.12.0
     compile 'org.apache.jena:jena-csv:1.0.0'
 	compile 'org.codehaus.gpars:gpars:1.1.0'
 
